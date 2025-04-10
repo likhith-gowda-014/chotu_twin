@@ -1,4 +1,9 @@
-flask
-faster-whisper==0.10.0
-gTTS
-requests
+Flask==2.3.3
+Flask-Cors==4.0.0
+SpeechRecognition==3.10.1
+gTTS==2.3.2
+pydub==0.25.1
+sounddevice==0.4.6
+numpy==1.26.4
+python-dotenv==1.0.1
+requests==2.31.0
