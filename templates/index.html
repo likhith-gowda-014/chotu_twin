@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STT and AI Response</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</head>
+<body>
+
+    <h1>Speech-to-Text and AI Response</h1>
+
+    <!-- Mic Button -->
+    <button id="record-btn" class="mic-button">
+        <i class="fas fa-microphone"></i>
+    </button>
+
+    <p id="status">Click the mic to start recording...</p>
+
+    <!-- Scripts -->
+    <script>
+        const recordBtn = document.getElementById("record-btn");
+        const statusText = document.getElementById("status");
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        recordBtn.addEventListener("click", () => {
+            if (isRecording) {
+                mediaRecorder.stop();
+                statusText.innerText = "Processing...";
+                recordBtn.innerHTML = '<i class="fas fa-microphone"></i>'; 
+            } else {
+                startRecording();
+                recordBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>'; 
+            }
+            isRecording = !isRecording;
+        });
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                        audioChunks = [];
+                        sendAudioToServer(audioBlob);
+                    };
+
+                    statusText.innerText = "Recording...";
+                })
+                .catch(error => {
+                    console.error("Microphone access denied:", error);
+                    statusText.innerText = "Microphone access denied!";
+                });
+        }
+
+        function sendAudioToServer(audioBlob) {
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "recording.wav");
+
+            fetch("/stt", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("API Response:", data);
+                if (data.ai_response) {
+                    playTTS(data.ai_response);
+                } else if (data.error) {
+                    console.error("Error: " + data.error);
+                }
+                statusText.innerText = "Done!";
+            })
+            .catch(error => {
+                console.error("Request failed:", error);
+                statusText.innerText = "An error occurred.";
+            });
+        }
+
+        function playTTS(text) {
+            fetch("/tts_audio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.blob())
+            .then(audioBlob => {
+                const audioUrl = URL.createObjectURL(audioBlob);
+                playAudio(audioUrl);
+            })
+            .catch(error => console.error("TTS Error:", error));
+        }
+
+        function playAudio(audioUrl) {
+            const audio = new Audio(audioUrl);
+            audio.play();
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mic-button {
+            font-size: 24px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .mic-button:hover {
+            background-color: #e84118;
+        }
+
+        .mic-button i {
+            font-size: 28px;
+        }
+
+        h1 {
+            margin-top: 30px;
+        }
+
+        #status {
+            margin-top: 20px;
+        }
+    </style>
+
+</body>
+</html>

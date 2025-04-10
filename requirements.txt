@@ -1,0 +1,4 @@
+flask
+faster-whisper==0.10.0
+gTTS
+requests
