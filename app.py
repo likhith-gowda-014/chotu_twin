@@ -29,11 +29,13 @@ def speech_to_text():
         return jsonify({"error": "No audio file received"}), 400
 
     audio_file = request.files["audio"]
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
-        audio_file.save(temp_audio_file.name)
-        temp_audio_path = temp_audio_file.name
+    temp_audio_path = None
 
     try:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio_file:
+            audio_file.save(temp_audio_file)
+            temp_audio_path = temp_audio_file.name
+
         print(f"Processing audio file at: {temp_audio_path}")
         segments, _ = stt_model.transcribe(temp_audio_path, beam_size=5)
         transcribed_text = " ".join([segment.text for segment in segments]).strip()
@@ -42,11 +44,8 @@ def speech_to_text():
         if not transcribed_text:
             return jsonify({"error": "Transcription failed or was empty"}), 500
 
-        # Get AI Response using OpenRouter
         ai_message = get_ai_response(transcribed_text)
         print(f"AI Response: {ai_message}")
-
-        # Convert AI Response to Speech
         tts_audio = convert_text_to_speech(ai_message)
 
     except Exception as e:
@@ -54,7 +53,7 @@ def speech_to_text():
         return jsonify({"error": str(e)}), 500
 
     finally:
-        if os.path.exists(temp_audio_path):
+        if temp_audio_path is not None and os.path.exists(temp_audio_path):
             os.remove(temp_audio_path)
 
     return jsonify({
@@ -113,6 +112,6 @@ def tts_audio():
         print(f"Error during TTS: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Entry point for local testing or Render startup
 if __name__ == "__main__":
-    app.run(debug=True)
-
+    app.run(host="0.0.0.0", port=10000, debug=True)  # Use port 10000 for Render if needed
