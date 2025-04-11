@@ -114,4 +114,5 @@ def tts_audio():
 
 # Entry point for local testing or Render startup
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)  # Use port 10000 for Render if needed
+    port = int(os.environ.get("PORT", 10000))  # fallback to 10000 if not set (good for local dev)
+    app.run(host="0.0.0.0", port=port, debug=False)
