@@ -1,17 +1,5 @@
 Flask==2.3.3
-<<<<<<< HEAD
 faster-whisper==0.10.0
 gTTS==2.5.1
 requests==2.31.0
 numpy==1.26.4
-=======
-requests==2.31.0
-gTTS==2.3.2
-faster-whisper==0.10.0
-torch==2.1.2
-ffmpeg-python==0.2.0
-numpy==1.26.4
-scipy==1.12.0
-soundfile==0.12.1
-typing-extensions==4.11.0
->>>>>>> 2f839964fec3f67d39f047554c942b9e6864a8ef
