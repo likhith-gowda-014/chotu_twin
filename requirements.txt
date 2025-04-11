@@ -3,5 +3,7 @@ faster-whisper==0.10.0
 gTTS==2.5.1
 requests==2.31.0
 numpy==1.26.4
-ffmpeg-python==0.2.0
-torch==2.0.1
+torch
+torchaudio
+ffmpeg-python
+gunicorn==21.2.0
